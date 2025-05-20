@@ -30,15 +30,12 @@ module tb_ram ();
     pA_wb_we_i <= 0;
 
     for (int i = 1; i < num_reads; i++) begin
-      while (1) begin
+      @(posedge clk_i);
+      while (pA_wb_stall_o) begin
+        pA_wb_stb_i <= 0;
         @(posedge clk_i);
-        if (pA_wb_stall_o) begin
-          pA_wb_stb_i <= 0;
-        end else begin
-          pA_wb_stb_i <= 1;
-          break;
-        end
       end
+      pA_wb_stb_i <= 1;
       pA_wb_addr_i <= 10'(addr_in + 4*i);
     end
 
@@ -51,15 +48,12 @@ module tb_ram ();
 
   task static pA_write(input logic [9:0] addr_in, input logic [31:0] data_in, input int num_writes);
     for (int i = 0; i < num_writes; i++) begin
-      while (1) begin
+      @(posedge clk_i);
+      while (pA_wb_stall_o) begin
+        pA_wb_stb_i <= 0;
         @(posedge clk_i);
-        if (pA_wb_stall_o) begin
-          pA_wb_stb_i <= 0;
-        end else begin
-          pA_wb_stb_i <= 1;
-          break;
-        end
       end
+      pA_wb_stb_i <= 1;
       pA_wb_addr_i <= 10'(addr_in + 4*i);
       pA_wb_data_i <= data_in;
       pA_wb_we_i <= 1;
@@ -78,15 +72,12 @@ module tb_ram ();
     pB_wb_we_i <= 0;
 
     for (int i = 1; i < num_reads; i++) begin
-      while (1) begin
+      @(posedge clk_i);
+      while (pB_wb_stall_o) begin
+        pB_wb_stb_i <= 0;
         @(posedge clk_i);
-        if (pB_wb_stall_o) begin
-          pB_wb_stb_i <= 0;
-        end else begin
-          pB_wb_stb_i <= 1;
-          break;
-        end
       end
+      pB_wb_stb_i <= 1;
       pB_wb_addr_i <= 10'(addr_in + 4*i);
     end
 
@@ -99,15 +90,12 @@ module tb_ram ();
 
   task static pB_write(input logic [9:0] addr_in, input logic [31:0] data_in, input int num_writes);
     for (int i = 0; i < num_writes; i++) begin
-      while (1) begin
+      @(posedge clk_i);
+      while (pB_wb_stall_o) begin
         @(posedge clk_i);
-        if (pB_wb_stall_o) begin
-          pB_wb_stb_i <= 0;
-        end else begin
-          pB_wb_stb_i <= 1;
-          break;
-        end
+        pB_wb_stb_i <= 0;
       end
+      pB_wb_stb_i <= 1;
       pB_wb_addr_i <= 10'(addr_in + 4*i);
       pB_wb_data_i <= data_in;
       pB_wb_we_i <= 1;
@@ -154,6 +142,7 @@ module tb_ram ();
     #41;
     pB_write(0, 32'hbeefdead, 4);
     pB_read(0, 4, data_outB);
+    #5;
     assert (data_outB == 32'hbeefdead) else $error ("Simultaneous Test Port B Failed");
     #100;
 
