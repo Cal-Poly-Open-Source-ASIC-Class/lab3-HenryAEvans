@@ -3,8 +3,8 @@
 module dual_port (
   input           clk_i,
   input           rst_ni,
-  input   [9:0]   pA_wb_addr_i,
-  input   [9:0]   pB_wb_addr_i,
+  input   [8:0]   pA_wb_addr_i,
+  input   [8:0]   pB_wb_addr_i,
   input           pA_wb_stb_i,
   input           pB_wb_stb_i,
   input           pA_wb_we_i,
@@ -22,9 +22,9 @@ module dual_port (
 
   logic ram1_we, ram1_en, ram2_we, ram2_en;
   logic [31:0] ram1_din, ram1_dout, ram2_din, ram2_dout;
-  logic [8:0] ram1_addr, ram2_addr;
+  logic [7:0] ram1_addr, ram2_addr;
 
-  DFFRAM512x32 ram1 (
+  DFFRAM256x32 ram1 (
       .CLK(clk_i),
       .WE0({4{ram1_we}}),
       .EN0(ram1_en),
@@ -33,7 +33,7 @@ module dual_port (
       .A0(ram1_addr)
     );
 
-  DFFRAM512x32 ram2 (
+  DFFRAM256x32 ram2 (
       .CLK(clk_i),
       .WE0({4{ram2_we}}),
       .EN0(ram2_en),
@@ -44,9 +44,9 @@ module dual_port (
 
     // async buffers for storing inputs
 
-    logic [9:0] pA_addr;
+    logic [8:0] pA_addr;
 
-    async_buffer #(.WIDTH(10)) pA_addr_buff (
+    async_buffer #(.WIDTH(9)) pA_addr_buff (
       .clk_i(clk_i),
       .rst_ni(rst_ni),
       .valid_i(pA_wb_stb_i),
@@ -54,8 +54,8 @@ module dual_port (
       .data_o(pA_addr)
       );
 
-    logic [9:0] pB_addr;
-    async_buffer #(.WIDTH(10)) pB_addr_buff (
+    logic [8:0] pB_addr;
+    async_buffer #(.WIDTH(9)) pB_addr_buff (
       .clk_i(clk_i),
       .rst_ni(rst_ni),
       .valid_i(pB_wb_stb_i),
@@ -131,16 +131,16 @@ module dual_port (
     assign pA_busy = pA_wb_stb_i ? 1 : pA_busy_reg;
     assign pB_busy = pB_wb_stb_i ? 1 : pB_busy_reg;
 
-    assign contention = pA_busy && pB_busy && (pA_wb_addr_i[9] == pB_wb_addr_i[9]);
+    assign contention = pA_busy && pB_busy && (pA_wb_addr_i[8] == pB_wb_addr_i[8]);
 
 
     logic ram1_mux_in, ram2_mux_in;
 
     // mux between ports for data in and address
     assign ram1_din = ram1_mux_in ? pB_data : pA_data;
-    assign ram1_addr = ram1_mux_in ? pB_addr[8:0] : pA_addr[8:0];
+    assign ram1_addr = ram1_mux_in ? pB_addr[7:0] : pA_addr[7:0];
     assign ram2_din = ram2_mux_in ? pB_data : pA_data;
-    assign ram2_addr = ram2_mux_in ? pB_addr[8:0] : pA_addr[8:0];
+    assign ram2_addr = ram2_mux_in ? pB_addr[7:0] : pA_addr[7:0];
 
     // mux between output ports
     logic pA_mux_out, pB_mux_out;
@@ -148,10 +148,10 @@ module dual_port (
     assign pB_wb_data_o = pB_mux_out ? ram2_dout : ram1_dout;
 
     // enable RAMs when requested
-    assign ram1_en = (pA_busy && !pA_addr[9])          || (pB_busy && !pB_addr[9]);
-    assign ram1_we = (pA_busy && !pA_addr[9] && pA_we) || (pB_busy && !pB_addr[9] && pA_we);
-    assign ram2_en = (pA_busy && pA_addr[9])           || (pB_busy && pB_addr[9]);
-    assign ram2_we = (pA_busy && pA_addr[9] && pA_we)  || (pB_busy && pB_addr[9] && pA_we);
+    assign ram1_en = (pA_busy && !pA_addr[8])          || (pB_busy && !pB_addr[8]);
+    assign ram1_we = (pA_busy && !pA_addr[8] && pA_we) || (pB_busy && !pB_addr[8] && pA_we);
+    assign ram2_en = (pA_busy && pA_addr[8])           || (pB_busy && pB_addr[8]);
+    assign ram2_we = (pA_busy && pA_addr[8] && pA_we)  || (pB_busy && pB_addr[8] && pA_we);
 
 
     // track the last port that was allowed access during contention
@@ -183,16 +183,16 @@ module dual_port (
         pB_mux_out <= 0;
       end else begin
         if (pA_access) begin
-          pA_mux_out <= pA_addr[9];
+          pA_mux_out <= pA_addr[8];
         end
         if (pB_access) begin
-          pB_mux_out <= pB_addr[9];
+          pB_mux_out <= pB_addr[8];
         end
       end
     end
 
     // Mux RAMs between the two ports
-    assign ram1_mux_in = pB_access && !pB_addr[9];
-    assign ram2_mux_in = pB_access && pB_addr[9];
+    assign ram1_mux_in = pB_access && !pB_addr[8];
+    assign ram2_mux_in = pB_access && pB_addr[8];
 
 endmodule

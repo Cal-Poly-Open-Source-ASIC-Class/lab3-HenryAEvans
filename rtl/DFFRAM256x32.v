@@ -1,7 +1,7 @@
 /*
  * DFFRAM.v
  *
- * * A 512x32 DFFRAM (2 Kbytes)
+ * * A 256x32 DFFRAM (1 Kbytes)
  *
  * This is free software: you can redistribute it and/or modify
  * it under the terms of the Apache License, Version 2.0 (the "License").
@@ -17,12 +17,12 @@
  * For further information, please visit .
  *
  */
- 
+
 `timescale 1ns/1ps
 
 `default_nettype        none
 
-module DFFRAM512x32  (
+module DFFRAM256x32  (
         CLK,
         WE0,
         EN0,
@@ -30,10 +30,9 @@ module DFFRAM512x32  (
         Do0,
         A0
 );
-       localparam A_WIDTH = 9;
+       localparam A_WIDTH = 8;
        localparam NUM_WORDS = 2**A_WIDTH;
-       
-
+   
        input   wire                         CLK;
        input   wire    [3:0]                WE0;
        input   wire                         EN0;
